@@ -1,0 +1,34 @@
+package com.hospitalmanagementsystem.demo.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+@Table(name = "prescriptions")
+public class Prescription {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long prescriptionId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id", nullable = false)
+    private Doctor doctor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patience_id", nullable = false)
+    private Patience patience;
+
+    private LocalDateTime prescriptionDate;
+
+    private String notes;
+
+
+}
