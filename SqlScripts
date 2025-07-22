@@ -4,3 +4,14 @@ INSERT INTO appointment_status (appointment_status) VALUES
 ('CANCELLED'),
 ('COMPLETED'),
 ('NO_SHOW');
+
+
+
+INSERT INTO department (department_name, department_description) VALUES
+('Cardiology', 'Deals with disorders of the heart and blood vessels'),
+('Neurology', 'Treats disorders of the nervous system'),
+('Orthopedics', 'Focuses on bones, joints, and muscles'),
+('Pediatrics', 'Medical care of infants, children, and adolescents'),
+('Dermatology', 'Concerned with skin-related issues');
+
+
