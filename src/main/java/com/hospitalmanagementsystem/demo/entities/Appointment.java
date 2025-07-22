@@ -21,7 +21,7 @@ public class Appointment {
     private long appointmentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patience_id", nullable = false)
+    @JoinColumn(name = "patience_id")
     private Patience patience;
 
     @ManyToOne(fetch = FetchType.LAZY)
