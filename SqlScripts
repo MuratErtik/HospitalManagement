@@ -15,3 +15,9 @@ INSERT INTO department (department_name, department_description) VALUES
 ('Dermatology', 'Concerned with skin-related issues');
 
 
+INSERT INTO user_role (user_role) VALUES
+('ADMIN'),
+('DOCTOR'),
+('PATIENT'),
+('RECEPTIONIST'),
+('PHARMACIST');
