@@ -1,0 +1,6 @@
+INSERT INTO appointment_status (appointment_status) VALUES 
+('AVAILABLE'),
+('BOOKED'),
+('CANCELLED'),
+('COMPLETED'),
+('NO_SHOW');
