@@ -18,7 +18,7 @@ public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long appointmentId;
+    private Long appointmentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patience_id")

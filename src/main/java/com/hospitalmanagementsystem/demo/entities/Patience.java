@@ -16,7 +16,7 @@ public class Patience {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long patienceId;
+    private Long patienceId;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
