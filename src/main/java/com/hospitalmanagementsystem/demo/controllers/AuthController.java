@@ -1,6 +1,7 @@
 package com.hospitalmanagementsystem.demo.controllers;
 
 import com.hospitalmanagementsystem.demo.entities.User;
+import com.hospitalmanagementsystem.demo.exceptions.AuthException;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
 import com.hospitalmanagementsystem.demo.responses.SignupResponse;
 import com.hospitalmanagementsystem.demo.services.AuthService;
@@ -19,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) throws AuthException {
 
         User newUSer = authService.createUser(signupRequest);
 
