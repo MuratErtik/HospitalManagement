@@ -2,6 +2,7 @@ package com.hospitalmanagementsystem.demo.services;
 
 import com.hospitalmanagementsystem.demo.entities.User;
 import com.hospitalmanagementsystem.demo.entities.UserRole;
+import com.hospitalmanagementsystem.demo.exceptions.AuthException;
 import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRoleRepository;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
@@ -33,24 +34,40 @@ public class AuthService {
 
     // maybe user signup already?
     //
-    public User createUser(SignupRequest req) {
+    public User createUser(SignupRequest req) throws AuthException {
+
+        String hashedTcNo = hashTcNo(req.getTcNo());
+
+        if (userRepository.findByTcNo(hashedTcNo).isPresent()) {
+            throw new AuthException("That TC already exists in the system");
+        }
+
         User newUser = new User();
 
-        newUser.setTcNo(hashTcNo(req.getTcNo()));
+        newUser.setTcNo(hashedTcNo);
+
         newUser.setName(req.getName());
+
         newUser.setLastname(req.getLastname());
+
         newUser.setEmail(req.getEmail());
+
 //        newUser.setPassword(passwordEncoder.encode(req.getPassword()));
+
         newUser.setMobileNo(req.getMobileNo());
 
+
         UserRole userRole = userRoleRepository.findByUserRole(req.getUserRole());
+        if (userRole == null) {
+            throw new AuthException("Invalid user role: " + req.getUserRole());
+        }
 
         newUser.setUserRole(userRole);
 
-        userRepository.save(newUser);
 
-        return newUser;
+        return userRepository.save(newUser);
     }
+
 
 
     private String hashTcNo(String tcNo) {
