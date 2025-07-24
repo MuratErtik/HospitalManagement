@@ -2,6 +2,7 @@ package com.hospitalmanagementsystem.demo.controllers;
 
 import com.hospitalmanagementsystem.demo.entities.User;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
+import com.hospitalmanagementsystem.demo.responses.SignupResponse;
 import com.hospitalmanagementsystem.demo.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,16 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) {
 
         User newUSer = authService.createUser(signupRequest);
 
-        return ResponseEntity.ok(newUSer);
+        SignupResponse  signupResponse = new SignupResponse();
+
+        signupResponse.setUserId(newUSer.getUserId());
+
+        signupResponse.setMessage("Successfully signed up");
+
+        return ResponseEntity.ok(signupResponse);
     }
 }
