@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -25,8 +26,10 @@ public class AuthService {
 
     private final UserRoleRepository userRoleRepository;
 
-    //@Autowired
-//    private BCryptPasswordEncoder passwordEncoder;
+
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private MessageDigest sha256Digest;
@@ -52,7 +55,7 @@ public class AuthService {
 
         newUser.setEmail(req.getEmail());
 
-//        newUser.setPassword(passwordEncoder.encode(req.getPassword()));
+        newUser.setPassword(passwordEncoder.encode(req.getPassword()));
 
         newUser.setMobileNo(req.getMobileNo());
 
