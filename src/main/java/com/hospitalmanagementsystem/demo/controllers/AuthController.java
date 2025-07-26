@@ -22,11 +22,13 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) throws AuthException {
 
-        User newUSer = authService.createUser(signupRequest);
+        String jwt = authService.createUser(signupRequest);
 
         SignupResponse  signupResponse = new SignupResponse();
 
-        signupResponse.setUserId(newUSer.getUserId());
+        //signupResponse.setUserId(newUSer.getUserId());
+
+        signupResponse.setJwtToken(jwt);
 
         signupResponse.setMessage("Successfully signed up");
 

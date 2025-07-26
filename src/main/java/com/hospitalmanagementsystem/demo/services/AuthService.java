@@ -1,5 +1,6 @@
 package com.hospitalmanagementsystem.demo.services;
 
+import com.hospitalmanagementsystem.demo.config.JwtProvider;
 import com.hospitalmanagementsystem.demo.entities.User;
 import com.hospitalmanagementsystem.demo.entities.UserRole;
 import com.hospitalmanagementsystem.demo.exceptions.AuthException;
@@ -10,12 +11,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +33,8 @@ public class AuthService {
     private final UserRepository userRepository;
 
     private final UserRoleRepository userRoleRepository;
+
+    private final JwtProvider jwtProvider;
 
 
 
@@ -37,7 +47,7 @@ public class AuthService {
 
     // maybe user signup already?
     //
-    public User createUser(SignupRequest req) throws AuthException {
+    public String createUser(SignupRequest req) throws AuthException {
 
         String hashedTcNo = hashTcNo(req.getTcNo());
 
@@ -68,7 +78,19 @@ public class AuthService {
         newUser.setUserRole(userRole);
 
 
-        return userRepository.save(newUser);
+         userRepository.save(newUser);
+
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(userRole.toString()));
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                newUser, null, authorities
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return jwtProvider.generateToken(authentication);
+
     }
 
 
