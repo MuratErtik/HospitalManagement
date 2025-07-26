@@ -7,5 +7,7 @@ public class SignupResponse {
 
     String message;
 
-    Long userId;
+//  Long userId;
+
+    String jwtToken;
 }
