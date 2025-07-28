@@ -5,6 +5,7 @@ import com.hospitalmanagementsystem.demo.exceptions.AuthException;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
 import com.hospitalmanagementsystem.demo.responses.SignupResponse;
 import com.hospitalmanagementsystem.demo.services.AuthService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) throws AuthException {
+    public ResponseEntity<SignupResponse> signup(@RequestBody SignupRequest signupRequest) throws AuthException, MessagingException {
 
         String jwt = authService.createUser(signupRequest);
 

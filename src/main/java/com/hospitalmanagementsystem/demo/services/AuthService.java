@@ -7,6 +7,7 @@ import com.hospitalmanagementsystem.demo.exceptions.AuthException;
 import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRoleRepository;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,10 +45,13 @@ public class AuthService {
     @Autowired
     private MessageDigest sha256Digest;
 
+    private final EmailService emailService;
+
 
     // maybe user signup already?
-    //
-    public String createUser(SignupRequest req) throws AuthException {
+    //mail
+    //audit log
+    public String createUser(SignupRequest req) throws AuthException, MessagingException {
 
         String hashedTcNo = hashTcNo(req.getTcNo());
 
@@ -78,7 +82,10 @@ public class AuthService {
         newUser.setUserRole(userRole);
 
 
-         userRepository.save(newUser);
+        userRepository.save(newUser);
+
+        emailService.afterTheRegisteration(newUser.getEmail(), newUser.getName(), newUser.getLastname());
+
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(userRole.toString()));
