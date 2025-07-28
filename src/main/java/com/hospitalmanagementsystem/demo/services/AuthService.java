@@ -8,6 +8,7 @@ import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRoleRepository;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,6 +48,12 @@ public class AuthService {
 
     private final EmailService emailService;
 
+    @Autowired
+    private HttpServletRequest request;
+
+    private final AuditLogService auditLogService;
+
+
 
     // maybe user signup already?
     //mail
@@ -85,6 +92,15 @@ public class AuthService {
         userRepository.save(newUser);
 
         emailService.afterTheRegisteration(newUser.getEmail(), newUser.getName(), newUser.getLastname());
+
+        auditLogService.logAction(
+                newUser.getEmail(),                    // username
+                "USER_SIGNUP",                         // action
+                "User",                                // entity name
+                newUser.getUserId().toString(),            // user ID
+                request.getRemoteAddr(),               // IP address
+                "User registered with role: " + userRole.getUserRole() // extra details
+        );
 
 
         List<GrantedAuthority> authorities = new ArrayList<>();
