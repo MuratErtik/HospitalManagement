@@ -70,6 +70,11 @@ public class JwtProvider {
         return claims.getSubject(); // "sub" -> email
     }
 
+    public Long getUserIdFromToken(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userId", Long.class);
+    }
+
     public UserRole getUserRoleFromToken(String token) {
         Claims claims = extractAllClaims(token);
         String roles = (String) claims.get("authorities");
