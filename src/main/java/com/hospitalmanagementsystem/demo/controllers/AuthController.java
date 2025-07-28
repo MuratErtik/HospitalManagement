@@ -2,6 +2,7 @@ package com.hospitalmanagementsystem.demo.controllers;
 
 import com.hospitalmanagementsystem.demo.entities.User;
 import com.hospitalmanagementsystem.demo.exceptions.AuthException;
+import com.hospitalmanagementsystem.demo.requests.LoginRequest;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
 import com.hospitalmanagementsystem.demo.responses.SignupResponse;
 import com.hospitalmanagementsystem.demo.services.AuthService;
@@ -32,6 +33,22 @@ public class AuthController {
         signupResponse.setJwtToken(jwt);
 
         signupResponse.setMessage("Successfully signed up");
+
+        return ResponseEntity.ok(signupResponse);
+    }
+
+    @PostMapping("/signin")
+    public ResponseEntity<SignupResponse> signin(@RequestBody LoginRequest loginRequest) throws AuthException, MessagingException {
+
+        String jwt = authService.login(loginRequest);
+
+        SignupResponse  signupResponse = new SignupResponse();
+
+        //signupResponse.setUserId(newUSer.getUserId());
+
+        signupResponse.setJwtToken(jwt);
+
+        signupResponse.setMessage("Successfully sign in.");
 
         return ResponseEntity.ok(signupResponse);
     }

@@ -6,6 +6,7 @@ import com.hospitalmanagementsystem.demo.entities.UserRole;
 import com.hospitalmanagementsystem.demo.exceptions.AuthException;
 import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRoleRepository;
+import com.hospitalmanagementsystem.demo.requests.LoginRequest;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -117,6 +118,62 @@ public class AuthService {
     }
 
 
+    public String login(LoginRequest req) throws AuthException {
+
+        String hashedTcNo = hashTcNo(req.getTcNo());
+
+        if (userRepository.findByTcNo(hashedTcNo).isPresent()) {
+
+            User user = userRepository.findByTcNo(hashedTcNo).get();
+
+            if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+
+                auditLogService.logAction(
+                        user.getEmail(),                    // username
+                        "USER_SIGNIN",                         // action
+                        "User",                                // entity name
+                        user.getUserId().toString(),            // user ID
+                        request.getRemoteAddr(),               // IP address
+                        "Wrong password: " // extra details
+                );
+                throw new AuthException("Invalid user password");
+            }
+
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority(user.getUserRole().toString()));
+
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    user, null, authorities
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            auditLogService.logAction(
+                    user.getEmail(),                    // username
+                    "USER_SIGNIN",                         // action
+                    "User",                                // entity name
+                    user.getUserId().toString(),            // user ID
+                    request.getRemoteAddr(),               // IP address
+                    "User login with role: " + user.getUserRole() // extra details
+            );
+
+            return jwtProvider.generateToken(authentication);
+
+
+        }
+        else{
+            auditLogService.logAction(
+                    "?",                    // username
+                    "USER_LOGIN",                         // action
+                    "User",                                // entity name
+                    "?",            // user ID
+                    request.getRemoteAddr(),               // IP address
+                    "Tc No is not in the System." // extra details
+            );
+            throw new AuthException("User not found");
+        }
+
+    }
 
     private String hashTcNo(String tcNo) {
         byte[] hashed = sha256Digest.digest(tcNo.getBytes(StandardCharsets.UTF_8));
