@@ -100,7 +100,7 @@ public class AuthService {
                 "User",                                // entity name
                 newUser.getUserId().toString(),            // user ID
                 request.getRemoteAddr(),               // IP address
-                "User registered with role: " + userRole.getUserRole() // extra details
+                "User registered with role: " + userRole.getUserRole().toString() // extra details
         );
 
 
@@ -154,7 +154,7 @@ public class AuthService {
                     "User",                                // entity name
                     user.getUserId().toString(),            // user ID
                     request.getRemoteAddr(),               // IP address
-                    "User login with role: " + user.getUserRole() // extra details
+                    "User login with role: " + user.getUserRole().toString() // extra details
             );
 
             return jwtProvider.generateToken(authentication);
