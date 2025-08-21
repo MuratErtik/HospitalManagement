@@ -2,8 +2,10 @@ package com.hospitalmanagementsystem.demo.services;
 
 import com.hospitalmanagementsystem.demo.entities.Department;
 import com.hospitalmanagementsystem.demo.entities.Doctor;
+import com.hospitalmanagementsystem.demo.entities.Patient;
 import com.hospitalmanagementsystem.demo.entities.User;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
+import com.hospitalmanagementsystem.demo.exceptions.PatientException;
 import com.hospitalmanagementsystem.demo.repositories.DepartmentRepository;
 import com.hospitalmanagementsystem.demo.repositories.DoctorRepository;
 import com.hospitalmanagementsystem.demo.repositories.PatientRepository;
@@ -26,6 +28,7 @@ public class CompleteUserInformationService {
     private final DepartmentRepository departmentRepository;
 
     private final UserRepository userRepository;
+
 
     //complete doctor info
     //get doctor request for fill up the information
@@ -69,7 +72,40 @@ public class CompleteUserInformationService {
 
 
     //complete patient info
+    public CompletePatientInfoResponse completePatientInformation(CompletePatientInformationsRequest patient, Long userId) throws PatientException {
 
+        User user = userRepository.findByUserId(userId);
+
+        if (user == null) {
+            throw new DoctorException("User not found with id " + userId);
+        }
+
+        Patient patientToUpdate = patientRepository.findPatientByUser(user);
+
+        if (patientToUpdate == null) {
+            throw new PatientException("Patient not found with id " + userId);
+        }
+
+        patientToUpdate.setGender(patient.getGender());
+
+        patientToUpdate.setAddress(patient.getAddress());
+
+        patientToUpdate.setBirthDate(patient.getBirthDate());
+
+        patientToUpdate.setEmergencyContact(patient.getEmergencyContact());
+
+        patientRepository.save(patientToUpdate);
+
+
+
+
+        CompletePatientInfoResponse completePatientInfoResponse = new CompletePatientInfoResponse();
+
+        completePatientInfoResponse.setMessage("Successfully completed user information and user id " + userId);
+
+        return completePatientInfoResponse;
+
+    }
 
 
 }
