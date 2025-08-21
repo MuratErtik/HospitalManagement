@@ -1,9 +1,13 @@
 package com.hospitalmanagementsystem.demo.services;
 
 import com.hospitalmanagementsystem.demo.config.JwtProvider;
+import com.hospitalmanagementsystem.demo.entities.Doctor;
+import com.hospitalmanagementsystem.demo.entities.Patient;
 import com.hospitalmanagementsystem.demo.entities.User;
 import com.hospitalmanagementsystem.demo.entities.UserRole;
 import com.hospitalmanagementsystem.demo.exceptions.AuthException;
+import com.hospitalmanagementsystem.demo.repositories.DoctorRepository;
+import com.hospitalmanagementsystem.demo.repositories.PatientRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRoleRepository;
 import com.hospitalmanagementsystem.demo.requests.LoginRequest;
@@ -54,6 +58,10 @@ public class AuthService {
 
     private final AuditLogService auditLogService;
 
+    private final PatientRepository patientRepository;
+
+    private final DoctorRepository doctorRepository;
+
 
 
     // maybe user signup already?
@@ -91,6 +99,22 @@ public class AuthService {
 
 
         userRepository.save(newUser);
+
+        //if roles equaal patinece goes to patience repo
+
+        if (userRole.getUserRole().equals("PATIENT")) {
+            Patient patient = new Patient();
+            patient.setUser(newUser);
+            patientRepository.save(patient);
+
+        }
+
+        if (userRole.getUserRole().equals("DOCTOR")) {
+            Doctor doctor = new Doctor();
+            doctor.setUser(newUser);
+            doctorRepository.save(doctor);
+
+        }
 
         emailService.afterTheRegisteration(newUser.getEmail(), newUser.getName(), newUser.getLastname());
 
