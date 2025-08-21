@@ -27,5 +27,20 @@ public class GlobalException {
 
     }
 
+    @ExceptionHandler(DoctorException.class)
+    public ResponseEntity<ErrorDetail> handleDoctorException(DoctorException de, WebRequest request) {
+
+        ErrorDetail errorDetail = new ErrorDetail();
+
+        errorDetail.setTimestamp(LocalDateTime.now());
+
+        errorDetail.setError(de.getMessage());
+
+        errorDetail.setDetails(request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+
+    }
+
 
 }
