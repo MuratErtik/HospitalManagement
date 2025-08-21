@@ -3,10 +3,6 @@ package com.hospitalmanagementsystem.demo.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-
 @Entity
 @Getter
 @Setter
@@ -21,14 +17,16 @@ public class Appointment {
     private Long appointmentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patience_id")
-    private Patience patience;
+    @JoinColumn(name = "patient_id")
+    private Patient patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
-    private LocalDateTime appointmentDateTime;
+    @OneToOne
+    @JoinColumn(name = "slot_id", nullable = false)
+    private AppointmentSlot slot;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "appointmentStatusId", nullable = false)

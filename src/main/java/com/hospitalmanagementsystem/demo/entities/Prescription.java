@@ -23,8 +23,8 @@ public class Prescription {
     private Doctor doctor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patience_id", nullable = false)
-    private Patience patience;
+    @JoinColumn(name = "patient_id", nullable = false)
+    private Patient patient;
 
     private LocalDateTime prescriptionDate;
 
