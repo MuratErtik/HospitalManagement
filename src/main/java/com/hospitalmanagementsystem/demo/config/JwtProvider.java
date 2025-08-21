@@ -40,6 +40,7 @@ public class JwtProvider {
     public String generateToken(Authentication authentication) {
         String email;
         Long userId = null;
+        String userRole = null;
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
         Object principal = authentication.getPrincipal();
@@ -47,21 +48,25 @@ public class JwtProvider {
         if (principal instanceof User user) {
             email = user.getEmail();
             userId = user.getUserId();
+            userRole = user.getUserRole().getUserRole();
         } else {
             email = authentication.getName(); // fallback
         }
 
-        String roles = populateAuthorities(authorities);
-
         return Jwts.builder()
                 .setSubject(email)
+                .claim("userRole", userRole)
                 .claim("userId", userId)
-                .claim("authorities", roles)
+                .claim("authorities", authorities.stream()
+                        .map(GrantedAuthority::getAuthority) // sadece ROLE_ADMIN, ROLE_DOCTOR
+                        .toList())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .signWith(getSigningKey())
                 .compact();
+
     }
+
 
 
 
@@ -75,17 +80,23 @@ public class JwtProvider {
         return claims.get("userId", Long.class);
     }
 
-    public UserRole getUserRoleFromToken(String token) {
+    public String getUserRoleFromToken(String token) {
         Claims claims = extractAllClaims(token);
-        String roles = (String) claims.get("authorities");
-        String firstRole = roles.split(",")[0].trim();
-
-        UserRole userRole = userRoleRepository.findByUserRole(firstRole);
-        if (userRole == null) {
-            throw new RuntimeException("Role not found for authority: " + firstRole);
-        }
-        return userRole;
+        return claims.get("userRole", String.class);
     }
+
+
+//    public String getUserRoleFromToken(String token) {
+//        Claims claims = extractAllClaims(token);
+//        String roles = (String) claims.get("authorities");
+//        String firstRole = roles.split(",")[0].trim();
+//
+//        UserRole userRole = userRoleRepository.findByUserRole(firstRole);
+//        if (userRole == null) {
+//            throw new RuntimeException("Role not found for authority: " + firstRole);
+//        }
+//        return userRole.getUserRole();
+//    }
 
     public String getRoleFromEmail(String email) throws AuthException {
         User user = userRepository.findByEmail(email);
