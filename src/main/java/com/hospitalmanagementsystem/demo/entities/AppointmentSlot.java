@@ -27,7 +27,7 @@ public class AppointmentSlot {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    private boolean booked;  // is slot free to open or not
+    private boolean booked = false;  // is slot free to open or not
 
     @OneToOne(mappedBy = "slot")
     private Appointment appointment;
