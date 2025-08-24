@@ -21,8 +21,8 @@ public class AppointmentSlot {
     private Long slotId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+    @JoinColumn(name = "doctor_schedule_id", nullable = false)
+    private DoctorSchedule doctorSchedule;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
