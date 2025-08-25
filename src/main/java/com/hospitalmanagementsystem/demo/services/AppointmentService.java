@@ -4,6 +4,7 @@ import com.hospitalmanagementsystem.demo.entities.AppointmentSlot;
 import com.hospitalmanagementsystem.demo.entities.Doctor;
 import com.hospitalmanagementsystem.demo.entities.DoctorSchedule;
 import com.hospitalmanagementsystem.demo.entities.User;
+import com.hospitalmanagementsystem.demo.exceptions.AppointmentException;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
 import com.hospitalmanagementsystem.demo.repositories.AppointmentSlotRepository;
 import com.hospitalmanagementsystem.demo.repositories.DoctorRepository;
@@ -70,7 +71,7 @@ public class AppointmentService {
 
     }
 
-    public CreateAppointmentSlotResponse createAppointmentSlot(CreateSlotRequest req, Long doctorId) throws DoctorException {
+    public CreateAppointmentSlotResponse createAppointmentSlot(CreateSlotRequest req, Long doctorId) throws DoctorException,AppointmentException {
 
 
         User user = userRepository.findByUserId(doctorId);
@@ -108,7 +109,7 @@ public class AppointmentService {
 
     }
 
-    private void generateSlotForDay(DoctorSchedule doctorSchedule, LocalDate date) {
+    private void generateSlotForDay(DoctorSchedule doctorSchedule, LocalDate date)throws AppointmentException {
         final int duration = doctorSchedule.getSlotDurationMinutes();
 
         LocalTime time = doctorSchedule.getStartTime();
@@ -119,7 +120,7 @@ public class AppointmentService {
 
         while (!time.plusMinutes(duration).isAfter(dayEnd)) {
 
-            //if it is in lunch break update time as 13.00 and continue
+            // Lunch break skip
             boolean overlapsLunch = time.isBefore(lunchEnd) && time.plusMinutes(duration).isAfter(lunchStart);
             if (overlapsLunch) {
                 time = lunchEnd;
@@ -137,24 +138,32 @@ public class AppointmentService {
                             newStartTime
                     );
 
-            if (!overlap) {
-                // Make sure that no duplication
-                boolean sameStartExists =
-                        appointmentSlotRepository.existsByDoctorScheduleAndStartTime(doctorSchedule, newStartTime);
-
-                if (!sameStartExists) {
-                    AppointmentSlot slot = new AppointmentSlot();
-                    slot.setDoctorSchedule(doctorSchedule);
-                    slot.setStartTime(newStartTime);
-                    slot.setEndTime(newEndTime);
-                    slot.setBooked(false);
-
-                    appointmentSlotRepository.save(slot);
-                }
+            if (overlap) {
+                throw new AppointmentException("Overlap detected for slot starting at " + newStartTime);
             }
+
+            // Check duplicate start
+            boolean sameStartExists =
+                    appointmentSlotRepository.existsByDoctorScheduleAndStartTime(doctorSchedule, newStartTime);
+
+            if (sameStartExists) {
+                throw new AppointmentException("Slot already exists for start time " + newStartTime);
+            }
+
+            // If no conflicts, create new slot
+            AppointmentSlot slot = new AppointmentSlot();
+            slot.setDoctorSchedule(doctorSchedule);
+            slot.setStartTime(newStartTime);
+            slot.setEndTime(newEndTime);
+            slot.setBooked(false);
+
+            appointmentSlotRepository.save(slot);
+
+
 
             time = time.plusMinutes(duration);
         }
     }
+
 
 }
