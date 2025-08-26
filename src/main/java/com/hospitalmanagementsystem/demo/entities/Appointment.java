@@ -20,9 +20,9 @@ public class Appointment {
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "doctor_id", nullable = false)
+//    private Doctor doctor;
 
     @OneToOne
     @JoinColumn(name = "slot_id", nullable = false)
