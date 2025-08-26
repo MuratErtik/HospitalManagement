@@ -2,6 +2,7 @@ package com.hospitalmanagementsystem.demo.controllers;
 
 import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
 import com.hospitalmanagementsystem.demo.responses.AppointmentSlotToPatientResponse;
+import com.hospitalmanagementsystem.demo.responses.DepartmentResponse;
 import com.hospitalmanagementsystem.demo.services.AppointmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,5 +38,11 @@ public class AppointmentToPatientContoller {
 
         List<AppointmentSlotToPatientResponse> slots = appointmentService.getFilteredSlots(request);
         return ResponseEntity.ok(slots);
+    }
+
+    @GetMapping("/departments")
+    public ResponseEntity<List<DepartmentResponse>> getDepartments() {
+        List<DepartmentResponse> departments = appointmentService.getDepartments();
+        return ResponseEntity.ok(departments);
     }
 }
