@@ -1,9 +1,6 @@
 package com.hospitalmanagementsystem.demo.services;
 
-import com.hospitalmanagementsystem.demo.entities.AppointmentSlot;
-import com.hospitalmanagementsystem.demo.entities.Doctor;
-import com.hospitalmanagementsystem.demo.entities.DoctorSchedule;
-import com.hospitalmanagementsystem.demo.entities.User;
+import com.hospitalmanagementsystem.demo.entities.*;
 import com.hospitalmanagementsystem.demo.exceptions.AppointmentException;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
 import com.hospitalmanagementsystem.demo.repositories.AppointmentSlotRepository;
@@ -12,8 +9,11 @@ import com.hospitalmanagementsystem.demo.repositories.DoctorScheduleRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.requests.CompleteDoctorScheduleRequest;
 import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
+import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
+import com.hospitalmanagementsystem.demo.responses.AppointmentSlotToPatientResponse;
 import com.hospitalmanagementsystem.demo.responses.CompleteDoctorScheduleResponse;
 import com.hospitalmanagementsystem.demo.responses.CreateAppointmentSlotResponse;
+import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +21,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,8 @@ public class AppointmentService {
     private final UserRepository userRepository;
 
     private final AppointmentSlotRepository appointmentSlotRepository;
+
+    private final AppointmentSlotSpecifications appointmentSlotSpecifications;
 
     //complete doctor schedule
     public CompleteDoctorScheduleResponse generateDoctorScheduleResponse(CompleteDoctorScheduleRequest req, Long doctorId) throws DoctorException {
@@ -163,6 +167,27 @@ public class AppointmentService {
 
             time = time.plusMinutes(duration);
         }
+    }
+
+    public List<AppointmentSlotToPatientResponse> getFilteredSlots(PatientSlotFilterRequest request) {
+        List<AppointmentSlot> slots = appointmentSlotRepository.findAll(
+                AppointmentSlotSpecifications.byFilters(request)
+        );
+
+        return slots.stream().map(this::mapToPatientSlotResponse).collect(Collectors.toList());
+    }
+
+    private AppointmentSlotToPatientResponse mapToPatientSlotResponse(AppointmentSlot appointmentSlot) {
+        Doctor doctor = appointmentSlot.getDoctorSchedule().getDoctor();
+        Department department = doctor.getDepartment();
+
+        return new AppointmentSlotToPatientResponse(
+                appointmentSlot.getStartTime().toLocalDate(),
+                appointmentSlot.getStartTime().toLocalTime(),
+                appointmentSlot.getEndTime().toLocalTime(),
+                doctor.getUser().getName() + " " + doctor.getUser().getLastname(),
+                department.getDepartmentName()
+        );
     }
 
 
