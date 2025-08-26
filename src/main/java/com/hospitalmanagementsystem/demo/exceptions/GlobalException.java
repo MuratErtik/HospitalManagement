@@ -57,5 +57,20 @@ public class GlobalException {
 
     }
 
+    @ExceptionHandler(AppointmentException.class)
+    public ResponseEntity<ErrorDetail> handleAppointmentException(AppointmentException de, WebRequest request) {
+
+        ErrorDetail errorDetail = new ErrorDetail();
+
+        errorDetail.setTimestamp(LocalDateTime.now());
+
+        errorDetail.setError(de.getMessage());
+
+        errorDetail.setDetails(request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+
+    }
+
 
 }
