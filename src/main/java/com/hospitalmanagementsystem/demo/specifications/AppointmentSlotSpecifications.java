@@ -3,7 +3,6 @@ package com.hospitalmanagementsystem.demo.specifications;
 import com.hospitalmanagementsystem.demo.entities.*;
 import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
