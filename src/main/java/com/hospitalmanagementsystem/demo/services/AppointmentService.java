@@ -7,10 +7,7 @@ import com.hospitalmanagementsystem.demo.repositories.*;
 import com.hospitalmanagementsystem.demo.requests.CompleteDoctorScheduleRequest;
 import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
 import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
-import com.hospitalmanagementsystem.demo.responses.AppointmentSlotToPatientResponse;
-import com.hospitalmanagementsystem.demo.responses.CompleteDoctorScheduleResponse;
-import com.hospitalmanagementsystem.demo.responses.CreateAppointmentSlotResponse;
-import com.hospitalmanagementsystem.demo.responses.DepartmentResponse;
+import com.hospitalmanagementsystem.demo.responses.*;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -205,6 +202,31 @@ public class AppointmentService {
         return new DepartmentResponse(
                 department.getDepartmentId(),
                 department.getDepartmentName()
+        );
+    }
+
+    public List<DoctorResponse> getDoctors(Long departmentId) {
+
+        Department department = departmentRepository.findByDepartmentId(departmentId);
+
+        if (department == null) {
+            throw new AppointmentException("Department with id " + departmentId + " not found");
+        }
+
+        List<Doctor> doctors = doctorRepository.findDoctorByDepartment(department);
+
+        return doctors.stream().map(this::mapDoctorResponse).collect(Collectors.toList());
+
+
+    }
+
+    private DoctorResponse mapDoctorResponse(Doctor doctor) {
+
+        return new DoctorResponse(
+                doctor.getDoctorId(),
+                doctor.getUser().getName(),
+                doctor.getUser().getLastname()
+
         );
     }
 
