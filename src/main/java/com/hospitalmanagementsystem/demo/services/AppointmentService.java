@@ -4,11 +4,13 @@ import com.hospitalmanagementsystem.demo.entities.*;
 import com.hospitalmanagementsystem.demo.exceptions.AppointmentException;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
 import com.hospitalmanagementsystem.demo.repositories.*;
+import com.hospitalmanagementsystem.demo.requests.AppointmentNoteRequest;
 import com.hospitalmanagementsystem.demo.requests.CompleteDoctorScheduleRequest;
 import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
 import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
 import com.hospitalmanagementsystem.demo.responses.*;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,15 @@ public class AppointmentService {
     private final AppointmentSlotSpecifications appointmentSlotSpecifications;
 
     private final DepartmentRepository departmentRepository;
+
+    private final PatientRepository patientRepository;
+
+    private final AppointmentStatusRepository appointmentStatusRepository;
+
+    private final EmailService emailService;
+
+    private final AppointmentRepository appointmentRepository;
+
 
     //complete doctor schedule
     public CompleteDoctorScheduleResponse generateDoctorScheduleResponse(CompleteDoctorScheduleRequest req, Long doctorId) throws DoctorException {
@@ -230,5 +241,71 @@ public class AppointmentService {
         );
     }
 
+    //make an appointment
+    public MakeAppointmentResponse makeAppointment(Long appointmentSlotId,Long patientId) throws AppointmentException, MessagingException {
 
+        AppointmentSlot appointmentSlot = appointmentSlotRepository.findAppointmentSlotBySlotId(appointmentSlotId);
+
+        if (appointmentSlot == null) {
+            throw new AppointmentException("Slot with id " + appointmentSlotId + " not found");
+        }
+
+        if (appointmentSlot.isBooked()){
+            throw new AppointmentException("Slot is already booked");
+        }
+
+        appointmentSlot.setBooked(true);
+
+        Appointment appointment = new Appointment();
+
+        appointment.setSlot(appointmentSlot);
+
+        User user = userRepository.findByUserId(patientId);
+
+        if (user == null) {
+            throw new AppointmentException("User with id " + patientId + " not found");
+        }
+
+        Patient patient = patientRepository.findPatientByUser(user);
+
+        if (patient == null) {
+            throw new AppointmentException("Patient with id " + patientId + " not found");
+        }
+
+        appointment.setPatient(patient);
+
+        AppointmentStatus appointmentStatus = appointmentStatusRepository.findByAppointmentStatus("BOOKED");
+
+        appointment.setStatus(appointmentStatus);
+
+        appointmentRepository.save(appointment);
+
+        MakeAppointmentResponse makeAppointmentResponse = new MakeAppointmentResponse();
+
+        makeAppointmentResponse.setMessage("Successfully maked appointment");
+
+        emailService.makeAppointment(user.getEmail(),user.getName(),user.getLastname(),appointment);
+
+        return makeAppointmentResponse;
+
+    }
+
+    public MakeAppointmentResponse addNote(Long appointmentId, Long patientId, AppointmentNoteRequest request){
+
+        Appointment appointment = appointmentRepository.findByAppointmentId(appointmentId);
+
+        if (appointment == null) {
+            throw new AppointmentException("Appointment with id " + appointmentId + " not found");
+        }
+
+        appointment.setNotes(request.getNote());
+
+        MakeAppointmentResponse makeAppointmentResponse = new MakeAppointmentResponse();
+
+        makeAppointmentResponse.setMessage("Successfully added appointment' note.");
+
+        appointmentRepository.save(appointment);
+
+        return makeAppointmentResponse;
+    }
 }
