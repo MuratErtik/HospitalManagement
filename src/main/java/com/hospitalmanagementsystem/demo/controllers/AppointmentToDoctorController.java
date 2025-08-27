@@ -50,13 +50,13 @@ public class AppointmentToDoctorController {
     @GetMapping("{doctorId}/get-all-appointment")
     public ResponseEntity<List<GetAppointmentsToDoctorResponse>> getAllAppointment (@PathVariable Long doctorId,
                                                                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                                                                                    @RequestHeader("Authorization") String jwt
-                                                                                    /*@RequestParam Long statusId) throws AppointmentException */){
+                                                                                    @RequestHeader("Authorization") String jwt,
+                                                                                    @RequestParam(required = false) Long statusId) throws AppointmentException {
 
         Long doctorIdFromToken = jwtProvider.getUserIdFromToken(jwt);
 
         if(doctorIdFromToken.equals(doctorId) ){
-            List<GetAppointmentsToDoctorResponse> response = appointmentService.getAppointmentsToDoctor(doctorId,date);
+            List<GetAppointmentsToDoctorResponse> response = appointmentService.getAppointmentsToDoctor(doctorId,date,statusId);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }else{
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

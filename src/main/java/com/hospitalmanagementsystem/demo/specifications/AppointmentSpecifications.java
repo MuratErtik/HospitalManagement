@@ -15,11 +15,13 @@ import java.util.List;
 @Service
 public class AppointmentSpecifications {
 
-    public static Specification<Appointment> appointmentSpecification(Long doctorId, LocalDate date) {
+    public static Specification<Appointment> appointmentSpecification(Long doctorId, LocalDate date,Long statusId) {
         return (root, query, cb) -> {
 
             // Appointment -> AppointmentSlot -> DoctorSchedule -> Doctor
             Join<Appointment, AppointmentSlot> appointmentSlotJoin = root.join("slot");
+            Join<Appointment, AppointmentStatus> appointmentStatusJoin = root.join("status");
+
             Join<AppointmentSlot, DoctorSchedule> doctorScheduleJoin = appointmentSlotJoin.join("doctorSchedule");
             Join<DoctorSchedule, Doctor> doctorJoin = doctorScheduleJoin.join("doctor");
             Join<Doctor, User> userJoin = doctorJoin.join("user");
@@ -30,7 +32,7 @@ public class AppointmentSpecifications {
             if (doctorId != null) {
                 predicates.add(cb.equal(userJoin.get("userId"), doctorId));
             }
-            // tarih filtrele (sadece gün)
+            // date filtering just date
             if (date != null) {
                 LocalDateTime startOfDay = date.atStartOfDay();
                 LocalDateTime endOfDay = date.atTime(LocalTime.MAX); // 23:59:59
@@ -40,6 +42,10 @@ public class AppointmentSpecifications {
                         startOfDay,
                         endOfDay
                 ));
+            }
+
+            if (statusId != null) {
+                predicates.add(cb.equal(appointmentStatusJoin.get("appointmentStatusId"), statusId));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
