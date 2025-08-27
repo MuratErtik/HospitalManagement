@@ -19,4 +19,6 @@ public interface AppointmentSlotRepository extends JpaRepository<AppointmentSlot
             DoctorSchedule doctorSchedule,
             LocalDateTime startTime
     );
+
+    AppointmentSlot findAppointmentSlotBySlotId(Long slotId);
 }

@@ -4,11 +4,14 @@ import com.hospitalmanagementsystem.demo.entities.*;
 import com.hospitalmanagementsystem.demo.exceptions.AppointmentException;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
 import com.hospitalmanagementsystem.demo.repositories.*;
+import com.hospitalmanagementsystem.demo.requests.AppointmentNoteRequest;
 import com.hospitalmanagementsystem.demo.requests.CompleteDoctorScheduleRequest;
 import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
 import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
 import com.hospitalmanagementsystem.demo.responses.*;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
+import com.hospitalmanagementsystem.demo.specifications.AppointmentSpecifications;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +19,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,15 @@ public class AppointmentService {
     private final AppointmentSlotSpecifications appointmentSlotSpecifications;
 
     private final DepartmentRepository departmentRepository;
+
+    private final PatientRepository patientRepository;
+
+    private final AppointmentStatusRepository appointmentStatusRepository;
+
+    private final EmailService emailService;
+
+    private final AppointmentRepository appointmentRepository;
+
 
     //complete doctor schedule
     public CompleteDoctorScheduleResponse generateDoctorScheduleResponse(CompleteDoctorScheduleRequest req, Long doctorId) throws DoctorException {
@@ -229,6 +240,161 @@ public class AppointmentService {
 
         );
     }
+
+    //make an appointment
+    public MakeAppointmentResponse makeAppointment(Long appointmentSlotId,Long patientId) throws AppointmentException, MessagingException {
+
+        AppointmentSlot appointmentSlot = appointmentSlotRepository.findAppointmentSlotBySlotId(appointmentSlotId);
+
+        if (appointmentSlot == null) {
+            throw new AppointmentException("Slot with id " + appointmentSlotId + " not found");
+        }
+
+        if (appointmentSlot.isBooked()){
+            throw new AppointmentException("Slot is already booked");
+        }
+
+        appointmentSlot.setBooked(true);
+
+        Appointment appointment = new Appointment();
+
+        appointment.setSlot(appointmentSlot);
+
+        User user = userRepository.findByUserId(patientId);
+
+        if (user == null) {
+            throw new AppointmentException("User with id " + patientId + " not found");
+        }
+
+        Patient patient = patientRepository.findPatientByUser(user);
+
+        if (patient == null) {
+            throw new AppointmentException("Patient with id " + patientId + " not found");
+        }
+
+        appointment.setPatient(patient);
+
+        AppointmentStatus appointmentStatus = appointmentStatusRepository.findByAppointmentStatus("BOOKED");
+
+        appointment.setStatus(appointmentStatus);
+
+        appointmentRepository.save(appointment);
+
+        MakeAppointmentResponse makeAppointmentResponse = new MakeAppointmentResponse();
+
+        makeAppointmentResponse.setMessage("Successfully maked appointment");
+
+        emailService.makeAppointment(user.getEmail(),user.getName(),user.getLastname(),appointment);
+
+        return makeAppointmentResponse;
+
+    }
+
+    public MakeAppointmentResponse addNote(Long appointmentId, Long patientId, AppointmentNoteRequest request){
+
+        Appointment appointment = appointmentRepository.findByAppointmentId(appointmentId);
+
+        if (appointment == null) {
+            throw new AppointmentException("Appointment with id " + appointmentId + " not found");
+        }
+
+        appointment.setNotes(request.getNote());
+
+        MakeAppointmentResponse makeAppointmentResponse = new MakeAppointmentResponse();
+
+        makeAppointmentResponse.setMessage("Successfully added appointment' note.");
+
+        appointmentRepository.save(appointment);
+
+        return makeAppointmentResponse;
+    }
+
+    public MakeAppointmentResponse changeAppointmentStatus(Long appointmentId, Long userId,Long statusId){
+
+        Appointment appointment = appointmentRepository.findByAppointmentId(appointmentId);
+
+        if (appointment == null) {
+            throw new AppointmentException("Appointment with id " + appointmentId + " not found");
+        }
+
+        AppointmentStatus appointmentStatus = appointmentStatusRepository.findByAppointmentStatusId(statusId);
+
+        if (appointmentStatus == null) {
+            throw new AppointmentException("Appointment status with id " + statusId + " not found");
+        }
+
+        AppointmentSlot appointmentSlot = appointment.getSlot();
+
+        if (appointmentStatus.getAppointmentStatus().equals("CANCELLED")) {
+
+            appointmentSlot.setBooked(false);
+            appointmentSlotRepository.save(appointmentSlot);
+
+        }
+
+        appointment.setStatus(appointmentStatus);
+
+        appointmentRepository.save(appointment);
+
+        MakeAppointmentResponse makeAppointmentResponse = new MakeAppointmentResponse();
+
+        makeAppointmentResponse.setMessage("Successfully changed appointment' status to " + appointmentStatus.getAppointmentStatus());
+
+        return makeAppointmentResponse;
+
+    }
+
+    public List<AppointmentStatusResponse> getAllAppointmentStatus() {
+
+        List<AppointmentStatus> appointmentStatuses = appointmentStatusRepository.findAll();
+
+        return appointmentStatuses.stream().map(this::mapAppointmentStatusResponse).collect(Collectors.toList());
+    }
+
+    public AppointmentStatusResponse mapAppointmentStatusResponse(AppointmentStatus appointmentStatus) {
+
+        return new AppointmentStatusResponse(appointmentStatus.getAppointmentStatusId(),appointmentStatus.getAppointmentStatus());
+    }
+
+    public List<GetAppointmentsToDoctorResponse> getAppointmentsToDoctor(Long doctorId,LocalDate date, Long statusId) {
+
+        List<Appointment> appointments = appointmentRepository.findAll(AppointmentSpecifications.appointmentSpecification(doctorId,date,statusId));
+
+        return appointments.stream().map(this::mapToResponse).collect(Collectors.toList());
+
+
+    }
+
+    private GetAppointmentsToDoctorResponse mapToResponse(Appointment appointment) {
+
+        GetAppointmentsToDoctorResponse dto = new GetAppointmentsToDoctorResponse();
+
+        dto.setNote(appointment.getNotes());
+
+        dto.setAppointmentStatus(appointment.getStatus().getAppointmentStatus());
+
+        dto.setPatientName(appointment.getPatient().getUser().getName()+" "+appointment.getPatient().getUser().getLastname());
+
+        dto.setGender(appointment.getPatient().getGender());
+
+        dto.setBirthday(appointment.getPatient().getBirthDate());
+
+        dto.setAddress(appointment.getPatient().getAddress());
+
+        dto.setAppointmentDate(appointment.getSlot().getStartTime().toLocalDate());
+
+        dto.setStartingTime(appointment.getSlot().getStartTime().toLocalTime());
+
+        dto.setEndingTime(appointment.getSlot().getEndTime().toLocalTime());
+
+        return dto;
+    }
+
+
+
+
+
+
 
 
 }
