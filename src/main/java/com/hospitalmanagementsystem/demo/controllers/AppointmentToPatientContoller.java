@@ -93,7 +93,7 @@ public class AppointmentToPatientContoller {
     @PostMapping("{patientId}/change-status/{appointmentId}")
     public ResponseEntity<MakeAppointmentResponse> changeStatus(@PathVariable Long patientId, @PathVariable Long appointmentId, @RequestHeader("Authorization") String jwt,@RequestParam Long statusId) throws AppointmentException {
 
-        String role = jwtProvider.getUserRoleFromToken(jwt);
+
         Long patientIdFromToken = jwtProvider.getUserIdFromToken(jwt);
 
         if(patientIdFromToken.equals(patientId) ){
