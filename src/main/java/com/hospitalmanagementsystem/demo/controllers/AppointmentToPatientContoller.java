@@ -83,4 +83,27 @@ public class AppointmentToPatientContoller {
         }
 
     }
+
+    @GetMapping("/status")
+    public ResponseEntity<List<AppointmentStatusResponse>> getAllAppointmentStatus() {
+        List<AppointmentStatusResponse> status = appointmentService.getAllAppointmentStatus();
+        return ResponseEntity.ok(status);
+    }
+
+    @PostMapping("{patientId}/change-status/{appointmentId}")
+    public ResponseEntity<MakeAppointmentResponse> changeStatus(@PathVariable Long patientId, @PathVariable Long appointmentId, @RequestHeader("Authorization") String jwt,@RequestParam Long statusId) throws AppointmentException {
+
+        String role = jwtProvider.getUserRoleFromToken(jwt);
+        Long patientIdFromToken = jwtProvider.getUserIdFromToken(jwt);
+
+        if(patientIdFromToken.equals(patientId) ){
+            MakeAppointmentResponse response = appointmentService.changeAppointmentStatus(appointmentId, patientId,statusId);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }else{
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+    }
+
+
 }

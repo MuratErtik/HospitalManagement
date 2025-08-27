@@ -18,7 +18,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -308,4 +307,57 @@ public class AppointmentService {
 
         return makeAppointmentResponse;
     }
+
+    public MakeAppointmentResponse changeAppointmentStatus(Long appointmentId, Long userId,Long statusId){
+
+        Appointment appointment = appointmentRepository.findByAppointmentId(appointmentId);
+
+        if (appointment == null) {
+            throw new AppointmentException("Appointment with id " + appointmentId + " not found");
+        }
+
+        AppointmentStatus appointmentStatus = appointmentStatusRepository.findByAppointmentStatusId(statusId);
+
+        if (appointmentStatus == null) {
+            throw new AppointmentException("Appointment status with id " + statusId + " not found");
+        }
+
+        AppointmentSlot appointmentSlot = appointment.getSlot();
+
+        if (appointmentStatus.getAppointmentStatus().equals("CANCELLED")) {
+
+            appointmentSlot.setBooked(false);
+            appointmentSlotRepository.save(appointmentSlot);
+
+        }
+
+        appointment.setStatus(appointmentStatus);
+
+        appointmentRepository.save(appointment);
+
+        MakeAppointmentResponse makeAppointmentResponse = new MakeAppointmentResponse();
+
+        makeAppointmentResponse.setMessage("Successfully changed appointment' status to " + appointmentStatus.getAppointmentStatus());
+
+        return makeAppointmentResponse;
+
+    }
+
+    public List<AppointmentStatusResponse> getAllAppointmentStatus() {
+
+        List<AppointmentStatus> appointmentStatuses = appointmentStatusRepository.findAll();
+
+        return appointmentStatuses.stream().map(this::mapAppointmentStatusResponse).collect(Collectors.toList());
+    }
+
+    public AppointmentStatusResponse mapAppointmentStatusResponse(AppointmentStatus appointmentStatus) {
+
+        return new AppointmentStatusResponse(appointmentStatus.getAppointmentStatusId(),appointmentStatus.getAppointmentStatus());
+    }
+
+
+
+
+
+
 }
