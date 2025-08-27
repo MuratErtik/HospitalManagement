@@ -10,6 +10,7 @@ import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
 import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
 import com.hospitalmanagementsystem.demo.responses.*;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
+import com.hospitalmanagementsystem.demo.specifications.AppointmentSpecifications;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -354,6 +355,42 @@ public class AppointmentService {
 
         return new AppointmentStatusResponse(appointmentStatus.getAppointmentStatusId(),appointmentStatus.getAppointmentStatus());
     }
+
+    public List<GetAppointmentsToDoctorResponse> getAppointmentsToDoctor(Long doctorId) {
+
+        List<Appointment> appointments = appointmentRepository.findAll(AppointmentSpecifications.appointmentSpecification(doctorId));
+
+        return appointments.stream().map(this::mapToResponse).collect(Collectors.toList());
+
+
+    }
+
+    private GetAppointmentsToDoctorResponse mapToResponse(Appointment appointment) {
+
+        GetAppointmentsToDoctorResponse dto = new GetAppointmentsToDoctorResponse();
+
+        dto.setNote(appointment.getNotes());
+
+        dto.setAppointmentStatus(appointment.getStatus().getAppointmentStatus());
+
+        dto.setPatientName(appointment.getPatient().getUser().getName()+" "+appointment.getPatient().getUser().getLastname());
+
+        dto.setGender(appointment.getPatient().getGender());
+
+        dto.setBirthday(appointment.getPatient().getBirthDate());
+
+        dto.setAddress(appointment.getPatient().getAddress());
+
+        dto.setAppointmentDate(appointment.getSlot().getStartTime().toLocalDate());
+
+        dto.setStartingTime(appointment.getSlot().getStartTime().toLocalTime());
+
+        dto.setEndingTime(appointment.getSlot().getEndTime().toLocalTime());
+
+        return dto;
+    }
+
+
 
 
 
