@@ -356,9 +356,9 @@ public class AppointmentService {
         return new AppointmentStatusResponse(appointmentStatus.getAppointmentStatusId(),appointmentStatus.getAppointmentStatus());
     }
 
-    public List<GetAppointmentsToDoctorResponse> getAppointmentsToDoctor(Long doctorId) {
+    public List<GetAppointmentsToDoctorResponse> getAppointmentsToDoctor(Long doctorId,LocalDate date) {
 
-        List<Appointment> appointments = appointmentRepository.findAll(AppointmentSpecifications.appointmentSpecification(doctorId));
+        List<Appointment> appointments = appointmentRepository.findAll(AppointmentSpecifications.appointmentSpecification(doctorId,date));
 
         return appointments.stream().map(this::mapToResponse).collect(Collectors.toList());
 

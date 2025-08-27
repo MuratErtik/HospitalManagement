@@ -6,13 +6,16 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class AppointmentSpecifications {
 
-    public static Specification<Appointment> appointmentSpecification(Long doctorId) {
+    public static Specification<Appointment> appointmentSpecification(Long doctorId, LocalDate date) {
         return (root, query, cb) -> {
 
             // Appointment -> AppointmentSlot -> DoctorSchedule -> Doctor
@@ -26,6 +29,17 @@ public class AppointmentSpecifications {
 
             if (doctorId != null) {
                 predicates.add(cb.equal(userJoin.get("userId"), doctorId));
+            }
+            // tarih filtrele (sadece gün)
+            if (date != null) {
+                LocalDateTime startOfDay = date.atStartOfDay();
+                LocalDateTime endOfDay = date.atTime(LocalTime.MAX); // 23:59:59
+
+                predicates.add(cb.between(
+                        appointmentSlotJoin.get("startTime"),
+                        startOfDay,
+                        endOfDay
+                ));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
