@@ -16,9 +16,9 @@ public class Medicine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long medicineId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prescription_id", nullable = false)
-    private Prescription prescription;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "prescription_id", nullable = false)
+//    private Prescription prescription;
 
     private String medicineName;
 
