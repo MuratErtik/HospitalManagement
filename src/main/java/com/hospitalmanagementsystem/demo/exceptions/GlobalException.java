@@ -72,5 +72,20 @@ public class GlobalException {
 
     }
 
+    @ExceptionHandler(MedicineException.class)
+    public ResponseEntity<ErrorDetail> handleMedicineException(MedicineException de, WebRequest request) {
+
+        ErrorDetail errorDetail = new ErrorDetail();
+
+        errorDetail.setTimestamp(LocalDateTime.now());
+
+        errorDetail.setError(de.getMessage());
+
+        errorDetail.setDetails(request.getDescription(false));
+
+        return new ResponseEntity<>(errorDetail, HttpStatus.BAD_REQUEST);
+
+    }
+
 
 }
