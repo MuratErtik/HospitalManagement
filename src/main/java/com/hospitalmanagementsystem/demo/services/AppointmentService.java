@@ -4,10 +4,7 @@ import com.hospitalmanagementsystem.demo.entities.*;
 import com.hospitalmanagementsystem.demo.exceptions.AppointmentException;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
 import com.hospitalmanagementsystem.demo.repositories.*;
-import com.hospitalmanagementsystem.demo.requests.AppointmentNoteRequest;
-import com.hospitalmanagementsystem.demo.requests.CompleteDoctorScheduleRequest;
-import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
-import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
+import com.hospitalmanagementsystem.demo.requests.*;
 import com.hospitalmanagementsystem.demo.responses.*;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSpecifications;
@@ -391,10 +388,45 @@ public class AppointmentService {
     }
 
 
+    public ChangeDoctorScheduleResponse changeDoctorSchedule(ChangeDoctorScheduleRequest request, Long userId) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if(user == null) throw new DoctorException("user not found with id "+userId);
 
 
+        Doctor doctor = doctorRepository.findDoctorByUser(user);
+
+        if(doctor == null) throw new DoctorException("Doctor not found with id "+userId);
+
+        DoctorSchedule doctorSchedule = doctorScheduleRepository.findDoctorScheduleByDoctor(doctor);
+
+        if(doctorSchedule == null) throw new DoctorException("Doctor Schedule not found with id "+userId);
+
+        if (request.getDayOfWeek()!=null){
+            doctorSchedule.setDayOfWeek(request.getDayOfWeek());
+        }
+
+        if (request.getEndTime()!=null){
+            doctorSchedule.setEndTime(request.getEndTime());
+        }
+
+        if (request.getStartTime()!=null){
+            doctorSchedule.setStartTime(request.getStartTime());
+        }
+
+        if (request.getSlotDurationMinutes()>0){
+            doctorSchedule.setSlotDurationMinutes(request.getSlotDurationMinutes());
+        }
+
+        doctorScheduleRepository.save(doctorSchedule);
+
+        ChangeDoctorScheduleResponse response = new ChangeDoctorScheduleResponse();
+
+        response.setMessage("Successfully changed appointment's schedule");
+
+        return response;
 
 
-
-
+    }
 }
