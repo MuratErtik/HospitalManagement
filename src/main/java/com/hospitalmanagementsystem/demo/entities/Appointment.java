@@ -34,5 +34,9 @@ public class Appointment {
 
     private String notes;
 
+    @OneToOne
+    @JoinColumn(name = "prescription_id")
+    private Prescription prescription;
+
 
 }

@@ -3,6 +3,9 @@ package com.hospitalmanagementsystem.demo.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -16,9 +19,8 @@ public class Medicine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long medicineId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prescription_id", nullable = false)
-    private Prescription prescription;
+    @ManyToMany(mappedBy = "medicines")
+    private List<Prescription> prescriptions = new ArrayList<>();
 
     private String medicineName;
 
@@ -27,6 +29,7 @@ public class Medicine {
     private int duration;
 
     private String medicineInstructions;
+
 
 
 
