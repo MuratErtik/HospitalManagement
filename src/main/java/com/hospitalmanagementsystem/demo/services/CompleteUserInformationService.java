@@ -46,11 +46,18 @@ public class CompleteUserInformationService {
             throw new DoctorException("Doctor not found with id " + userId);
         }
 
-        doctorToUpdate.setHospitalPhoneNo(doctor.getHospitalPhoneNumber());
+        if (doctor.getHospitalPhoneNumber()!=null){
+            doctorToUpdate.setHospitalPhoneNo(doctor.getHospitalPhoneNumber());
+        }
 
-        doctorToUpdate.setRoomNumber(doctor.getRoomNumber());
+        if (doctor.getRoomNumber()>0){
+            doctorToUpdate.setRoomNumber(doctor.getRoomNumber());
+        }
 
-        doctorToUpdate.setSpecialization(doctor.getSpecialization());
+        if (doctor.getSpecialization()!=null){
+            doctorToUpdate.setSpecialization(doctor.getSpecialization());
+
+        }
 
         Department department = departmentRepository.findByDepartmentName(doctor.getDepartmentName());
 
@@ -58,7 +65,9 @@ public class CompleteUserInformationService {
             throw new DoctorException("Department not found with name " + doctor.getDepartmentName());
         }
 
-        doctorToUpdate.setDepartment(department);
+        if (doctor.getDepartmentName()!=null){
+            doctorToUpdate.setDepartment(department);
+        }
 
         doctorRepository.save(doctorToUpdate);
 
@@ -86,17 +95,24 @@ public class CompleteUserInformationService {
             throw new PatientException("Patient not found with id " + userId);
         }
 
-        patientToUpdate.setGender(patient.getGender());
+        if (patient.getAddress() != null) {
+            patientToUpdate.setAddress(patient.getAddress());
+        }
 
-        patientToUpdate.setAddress(patient.getAddress());
+        if (patient.getGender() != null) {
+            patientToUpdate.setGender(patient.getGender());
+        }
 
-        patientToUpdate.setBirthDate(patient.getBirthDate());
+        if (patient.getBirthDate() != null) {
+            patientToUpdate.setBirthDate(patient.getBirthDate());
+        }
 
-        patientToUpdate.setEmergencyContact(patient.getEmergencyContact());
+        if (patient.getEmergencyContact() != null) {
+            patientToUpdate.setEmergencyContact(patient.getEmergencyContact());
+        }
+
 
         patientRepository.save(patientToUpdate);
-
-
 
 
         CompletePatientInfoResponse completePatientInfoResponse = new CompletePatientInfoResponse();
