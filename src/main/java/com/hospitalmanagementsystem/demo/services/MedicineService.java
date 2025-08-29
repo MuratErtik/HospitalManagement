@@ -46,13 +46,23 @@ public class MedicineService {
 
         Medicine medicine = new Medicine();
 
-        medicine.setMedicineName(request.getMedicineName());
+        if (request.getMedicineName() != null) {
+            medicine.setMedicineName(request.getMedicineName());
+        }
 
-        medicine.setMedicineInstructions(request.getMedicineInstructions());
+        if (request.getMedicineInstructions() != null) {
+            medicine.setMedicineInstructions(request.getMedicineInstructions());
+        }
 
-        medicine.setDuration(request.getDuration());
+        if (request.getDuration()>0){
+            medicine.setDuration(request.getDuration());
 
-        medicine.setDosage(request.getDosage());
+        }
+
+        if (request.getDosage()>0){
+            medicine.setDosage(request.getDosage());
+
+        }
 
         medicineRepository.save(medicine);
 

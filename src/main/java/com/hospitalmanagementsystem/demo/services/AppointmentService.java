@@ -4,10 +4,7 @@ import com.hospitalmanagementsystem.demo.entities.*;
 import com.hospitalmanagementsystem.demo.exceptions.AppointmentException;
 import com.hospitalmanagementsystem.demo.exceptions.DoctorException;
 import com.hospitalmanagementsystem.demo.repositories.*;
-import com.hospitalmanagementsystem.demo.requests.AppointmentNoteRequest;
-import com.hospitalmanagementsystem.demo.requests.CompleteDoctorScheduleRequest;
-import com.hospitalmanagementsystem.demo.requests.CreateSlotRequest;
-import com.hospitalmanagementsystem.demo.requests.PatientSlotFilterRequest;
+import com.hospitalmanagementsystem.demo.requests.*;
 import com.hospitalmanagementsystem.demo.responses.*;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSlotSpecifications;
 import com.hospitalmanagementsystem.demo.specifications.AppointmentSpecifications;
@@ -365,6 +362,43 @@ public class AppointmentService {
 
     }
 
+    public List<GetAppointmentsToPatientResponse> getAppointmentsToPatient(Long patientId,LocalDate date, Long statusId) {
+
+        List<Appointment> appointments = appointmentRepository.findAll(AppointmentSpecifications.appointmentPatientSpecification(patientId,date,statusId));
+
+        return appointments.stream().map(this::mapToPatientResponse).collect(Collectors.toList());
+
+
+    }
+
+    private GetAppointmentsToPatientResponse mapToPatientResponse(Appointment appointment) {
+
+        GetAppointmentsToPatientResponse dto = new GetAppointmentsToPatientResponse();
+
+        dto.setNote(appointment.getNotes());
+
+        dto.setAppointmentStatus(appointment.getStatus().getAppointmentStatus());
+
+        dto.setDepartmentName(appointment.getSlot().getDoctorSchedule().getDoctor().getDepartment().getDepartmentName());
+
+        dto.setDoctorName(appointment.getSlot().getDoctorSchedule().getDoctor().getUser().getName()+" "+appointment.getSlot().getDoctorSchedule().getDoctor().getUser().getLastname());
+
+        dto.setAppointmentDate(appointment.getSlot().getStartTime().toLocalDate());
+
+        dto.setStartingTime(appointment.getSlot().getStartTime().toLocalTime());
+
+        dto.setEndingTime(appointment.getSlot().getEndTime().toLocalTime());
+
+        if (appointment.getPrescription() != null) {
+            dto.setPrescription(mapToResponse(appointment.getPrescription()));
+
+        }
+
+        return dto;
+    }
+
+
+
     private GetAppointmentsToDoctorResponse mapToResponse(Appointment appointment) {
 
         GetAppointmentsToDoctorResponse dto = new GetAppointmentsToDoctorResponse();
@@ -387,14 +421,73 @@ public class AppointmentService {
 
         dto.setEndingTime(appointment.getSlot().getEndTime().toLocalTime());
 
+        if (appointment.getPrescription() != null) {
+            dto.setPrescription(mapToResponse(appointment.getPrescription()));
+
+        }
+
+
+        return dto;
+    }
+
+    private PrescriptionToAppointmentResponse mapToResponse(Prescription prescription) {
+        PrescriptionToAppointmentResponse dto = new PrescriptionToAppointmentResponse();
+        dto.setPrescriptionDate(prescription.getPrescriptionDate());
+        List<MedicineToPrescriptionResponse> medicine = prescription.getMedicines().stream().map(this::mapToPrescription).collect(Collectors.toList());
+        dto.setMedicines(medicine);
+        dto.setNotes(prescription.getNotes());
+        return dto;
+    }
+
+    private MedicineToPrescriptionResponse mapToPrescription(Medicine medicine){
+        MedicineToPrescriptionResponse dto = new MedicineToPrescriptionResponse();
+        dto.setMedicineName(medicine.getMedicineName());
+        dto.setDosage(medicine.getDosage());
+        dto.setDuration(medicine.getDuration());
+        dto.setMedicineInstructions(medicine.getMedicineInstructions());
         return dto;
     }
 
 
+    public ChangeDoctorScheduleResponse changeDoctorSchedule(ChangeDoctorScheduleRequest request, Long userId) {
+
+        User user = userRepository.findByUserId(userId);
+
+        if(user == null) throw new DoctorException("user not found with id "+userId);
 
 
+        Doctor doctor = doctorRepository.findDoctorByUser(user);
+
+        if(doctor == null) throw new DoctorException("Doctor not found with id "+userId);
+
+        DoctorSchedule doctorSchedule = doctorScheduleRepository.findDoctorScheduleByDoctor(doctor);
+
+        if(doctorSchedule == null) throw new DoctorException("Doctor Schedule not found with id "+userId);
+
+        if (request.getDayOfWeek()!=null){
+            doctorSchedule.setDayOfWeek(request.getDayOfWeek());
+        }
+
+        if (request.getEndTime()!=null){
+            doctorSchedule.setEndTime(request.getEndTime());
+        }
+
+        if (request.getStartTime()!=null){
+            doctorSchedule.setStartTime(request.getStartTime());
+        }
+
+        if (request.getSlotDurationMinutes()>0){
+            doctorSchedule.setSlotDurationMinutes(request.getSlotDurationMinutes());
+        }
+
+        doctorScheduleRepository.save(doctorSchedule);
+
+        ChangeDoctorScheduleResponse response = new ChangeDoctorScheduleResponse();
+
+        response.setMessage("Successfully changed appointment's schedule");
+
+        return response;
 
 
-
-
+    }
 }

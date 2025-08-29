@@ -10,8 +10,12 @@ import com.hospitalmanagementsystem.demo.repositories.DoctorRepository;
 import com.hospitalmanagementsystem.demo.repositories.PatientRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRepository;
 import com.hospitalmanagementsystem.demo.repositories.UserRoleRepository;
+import com.hospitalmanagementsystem.demo.requests.ChangeMailRequest;
+import com.hospitalmanagementsystem.demo.requests.ChangePasswordRequest;
 import com.hospitalmanagementsystem.demo.requests.LoginRequest;
 import com.hospitalmanagementsystem.demo.requests.SignupRequest;
+import com.hospitalmanagementsystem.demo.responses.ChangeMailResponse;
+import com.hospitalmanagementsystem.demo.responses.ChangePasswordResponse;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -199,9 +203,71 @@ public class AuthService {
 
     }
 
+    //change password,change mail
+
+
     private String hashTcNo(String tcNo) {
         byte[] hashed = sha256Digest.digest(tcNo.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(hashed);
+    }
+
+    public ChangeMailResponse changeMail(ChangeMailRequest newMail, Long userId) throws AuthException {
+
+        User user = userRepository.findByUserId(userId);
+
+        if (user == null) {
+            throw new AuthException("User not found");
+        }
+
+        user.setEmail(newMail.getEmail());
+
+        userRepository.save(user);
+
+        ChangeMailResponse changeMailResponse = new ChangeMailResponse();
+
+        changeMailResponse.setMessage("Mail changed successfully as"+ " " + user.getEmail());
+
+        return changeMailResponse;
+    }
+
+    public ChangePasswordResponse changePassword(ChangePasswordRequest request, Long userId) throws AuthException {
+
+        User user = userRepository.findByUserId(userId);
+
+
+
+        if (user == null) {
+            throw new AuthException("User not found");
+        }
+
+        System.out.println(user.getEmail());
+
+        System.out.println(request.getMail());
+
+        if (!user.getEmail().equals(request.getMail())) {
+            throw new AuthException("The user does not find with email");
+
+        }
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new AuthException("The passwords does not match");
+        }
+
+        if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AuthException("Old password has been incorrect!");
+
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        userRepository.save(user);
+
+        ChangePasswordResponse changePasswordResponse = new ChangePasswordResponse();
+
+        changePasswordResponse.setMessage("Password changed successfully");
+
+        return changePasswordResponse;
+
+
     }
 }
 
