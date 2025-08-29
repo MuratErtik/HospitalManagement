@@ -362,6 +362,43 @@ public class AppointmentService {
 
     }
 
+    public List<GetAppointmentsToPatientResponse> getAppointmentsToPatient(Long patientId,LocalDate date, Long statusId) {
+
+        List<Appointment> appointments = appointmentRepository.findAll(AppointmentSpecifications.appointmentPatientSpecification(patientId,date,statusId));
+
+        return appointments.stream().map(this::mapToPatientResponse).collect(Collectors.toList());
+
+
+    }
+
+    private GetAppointmentsToPatientResponse mapToPatientResponse(Appointment appointment) {
+
+        GetAppointmentsToPatientResponse dto = new GetAppointmentsToPatientResponse();
+
+        dto.setNote(appointment.getNotes());
+
+        dto.setAppointmentStatus(appointment.getStatus().getAppointmentStatus());
+
+        dto.setDepartmentName(appointment.getSlot().getDoctorSchedule().getDoctor().getDepartment().getDepartmentName());
+
+        dto.setDoctorName(appointment.getSlot().getDoctorSchedule().getDoctor().getUser().getName()+" "+appointment.getSlot().getDoctorSchedule().getDoctor().getUser().getLastname());
+
+        dto.setAppointmentDate(appointment.getSlot().getStartTime().toLocalDate());
+
+        dto.setStartingTime(appointment.getSlot().getStartTime().toLocalTime());
+
+        dto.setEndingTime(appointment.getSlot().getEndTime().toLocalTime());
+
+        if (appointment.getPrescription() != null) {
+            dto.setPrescription(mapToResponse(appointment.getPrescription()));
+
+        }
+
+        return dto;
+    }
+
+
+
     private GetAppointmentsToDoctorResponse mapToResponse(Appointment appointment) {
 
         GetAppointmentsToDoctorResponse dto = new GetAppointmentsToDoctorResponse();
