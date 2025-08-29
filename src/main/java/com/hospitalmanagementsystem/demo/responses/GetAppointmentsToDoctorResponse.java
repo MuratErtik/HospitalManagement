@@ -1,5 +1,6 @@
 package com.hospitalmanagementsystem.demo.responses;
 
+import com.hospitalmanagementsystem.demo.entities.Prescription;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -25,4 +26,6 @@ public class GetAppointmentsToDoctorResponse {
     private LocalDate birthday;
 
     private String address;
+
+    private PrescriptionToAppointmentResponse prescription;
 }

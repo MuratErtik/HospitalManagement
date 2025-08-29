@@ -384,6 +384,30 @@ public class AppointmentService {
 
         dto.setEndingTime(appointment.getSlot().getEndTime().toLocalTime());
 
+        if (appointment.getPrescription() != null) {
+            dto.setPrescription(mapToResponse(appointment.getPrescription()));
+
+        }
+
+
+        return dto;
+    }
+
+    private PrescriptionToAppointmentResponse mapToResponse(Prescription prescription) {
+        PrescriptionToAppointmentResponse dto = new PrescriptionToAppointmentResponse();
+        dto.setPrescriptionDate(prescription.getPrescriptionDate());
+        List<MedicineToPrescriptionResponse> medicine = prescription.getMedicines().stream().map(this::mapToPrescription).collect(Collectors.toList());
+        dto.setMedicines(medicine);
+        dto.setNotes(prescription.getNotes());
+        return dto;
+    }
+
+    private MedicineToPrescriptionResponse mapToPrescription(Medicine medicine){
+        MedicineToPrescriptionResponse dto = new MedicineToPrescriptionResponse();
+        dto.setMedicineName(medicine.getMedicineName());
+        dto.setDosage(medicine.getDosage());
+        dto.setDuration(medicine.getDuration());
+        dto.setMedicineInstructions(medicine.getMedicineInstructions());
         return dto;
     }
 
